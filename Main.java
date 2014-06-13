@@ -4,82 +4,162 @@ package konnorscomputers;
  * Created by konnor on 6/9/14.
  */
 
+import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import  org.lwjgl.opengl.*;
 import org.lwjgl.util.vector.Vector3f;
+import static org.lwjgl.util.glu.GLU.gluPerspective;
 
-import  static  org.lwjgl.opengl.GL11.*;
+import static  org.lwjgl.opengl.GL11.*;
 
-public class Main {
-    static Vector3f camLocation = new Vector3f(0,0,0);
-    static Camera cam = new Camera();
+public class Main 
+{
+	static long currentTime;
+	public enum State 
+	{
+		INTRO, GAME, MAIN_MENU;
+	}
+	//time since last frame
+	private static long lastFrame;
+	//get the time
+	private static long getTime() 
+	{
+		return (Sys.getTime() * 1000) / Sys.getTimerResolution();
+	}
+	//get the delta
+	private static int getDelta()
+	{
+		currentTime = getTime();
+		int delta = (int) (currentTime - lastFrame);
+		lastFrame = getTime();
+		return delta;
+	}
+	static Camera cam = new Camera(0,0,0);
     static int mouseDx;
     static  int mouseDy;
     static Inventory inv;
+    static float mouseSensitivity = 0.05f;
+    static float movementSpeed = 10 * .001f;
     //creates a launcher that runs start() when the start button on the launcher is pressed
     public static Launcher launcher;
     static LwjglDisplay display;
     public static void start() {
-        display = new LwjglDisplay(800,600);
+        display = new LwjglDisplay(1280,720);
 
     }
 
     public static void main(String[] args) {
-        launcher = new Launcher(1);
+        launcher = new Launcher(2);
     }
-    //is under Display not close requested
-    static void updateApp(){
-        glClear(GL_COLOR_BUFFER_BIT);
-        draw();
-        cam.location = camLocation;
+    static //is under Display not close requested
+  	float dt  = 0.0f;
+    static long lastFPS = getTime();
+    static void updateApp()
+    { 
+    	Mouse.setGrabbed(true);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   	    updateFPS();
+    	int delta = getDelta();
         inv.itemIDSelected();
+        GL11.glLoadIdentity();  
+         cam.lookThrough();
+        GL11.glTranslatef(0f,0.0f,-15f);                    
+        GL11.glColor3f(0.5f,0.5f,1.0f);  
+        //i draw a quad
+             
+        GL11.glBegin(GL11.GL_QUADS);    
+          // GL11.glColor3f(1.0f,1.0f,0.0f);           
+           GL11.glVertex3f( 1.0f, 1.0f,-1.0f);        
+           GL11.glVertex3f(-1.0f, 1.0f,-1.0f);        
+           GL11.glVertex3f(-1.0f, 1.0f, 1.0f);
+           GL11.glVertex3f( 1.0f, 1.0f, 1.0f);  
+          // GL11.glColor3f(1.0f,0.5f,0.0f);            
+           GL11.glVertex3f( 1.0f,-1.0f, 1.0f);
+           GL11.glVertex3f(-1.0f,-1.0f, 1.0f);
+           GL11.glVertex3f(-1.0f,-1.0f,-1.0f);
+           GL11.glVertex3f( 1.0f,-1.0f,-1.0f);
+           //GL11.glColor3f(1.0f,0.0f,0.0f);
+           GL11.glVertex3f( 1.0f, 1.0f, 1.0f);
+           GL11.glVertex3f(-1.0f, 1.0f, 1.0f);
+           GL11.glVertex3f(-1.0f,-1.0f, 1.0f);
+           GL11.glVertex3f( 1.0f,-1.0f, 1.0f);
+         //  GL11.glColor3f(1.0f,1.0f,0.0f);
+           GL11.glVertex3f( 1.0f,-1.0f,-1.0f);
+           GL11.glVertex3f(-1.0f,-1.0f,-1.0f);
+           GL11.glVertex3f(-1.0f, 1.0f,-1.0f);
+           GL11.glVertex3f( 1.0f, 1.0f,-1.0f);
+      //     GL11.glColor3f(0.0f,0.0f,1.0f);
+           GL11.glVertex3f(-1.0f, 1.0f, 1.0f);
+           GL11.glVertex3f(-1.0f, 1.0f,-1.0f);
+           GL11.glVertex3f(-1.0f,-1.0f,-1.0f);
+           GL11.glVertex3f(-1.0f,-1.0f, 1.0f);
+        //   GL11.glColor3f(1.0f,0.0f,1.0f);
+           GL11.glVertex3f( 1.0f, 1.0f,-1.0f);
+           GL11.glVertex3f( 1.0f, 1.0f, 1.0f);
+           GL11.glVertex3f( 1.0f,-1.0f, 1.0f);
+           GL11.glVertex3f( 1.0f,-1.0f,-1.0f);
+       GL11.glEnd();
         Display.update();
-        Display.sync(60);
-        keys();
+        Display.sync(20000);
+
         mouse();
+        keys();
     }
     //is before close not requested in the class LwjglDisplay
-    static void initApp(){
-        cam.setDefaultLocation(new Vector3f(0,0,0));
-        inv = new Inventory();
+    static void initApp()
+    {
         initGL();
+    	System.out.println("OpenGL version: " + GL11.glGetString(GL11.GL_VERSION));
+    	lastFrame = getTime();
+        inv = new Inventory();
     }
-    static void initGL(){
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity(); // Resets any previous projection matrices
-        glOrtho(0, 800, 600, 0, 1, -1);
-        glMatrixMode(GL_MODELVIEW);
+    static void initGL()
+    {
+        GL11.glMatrixMode(GL_PROJECTION);
+        GL11.glLoadIdentity(); // Resets any previous projection matrices
+        gluPerspective((float) 90f, 1280f/720f,0.01f,100f);
+        GL11.glMatrixMode(GL_MODELVIEW);
     }
-    static void keys(){
+    static void keys()
+    {
         if(Keyboard.isKeyDown((Keyboard.KEY_M))){
             //create jframe for settings
+        	// change game state to pause(MAIN_MENU)
 
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_W)){
-            cam.location = cam.moveForward();
+        if (Keyboard.isKeyDown(Keyboard.KEY_W))//move forward
+        {
+            cam.walkForward(movementSpeed*getDelta());
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_A)){
-            cam.location = cam.moveLeft();
+        if (Keyboard.isKeyDown(Keyboard.KEY_S))//move backwards
+        {
+            cam.walkBackwards(movementSpeed*getDelta());
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_S)){
-            cam.location = cam.moveBackward();
+        if (Keyboard.isKeyDown(Keyboard.KEY_A))//strafe left
+        {
+           cam.strafeLeft(movementSpeed*getDelta());
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_D)){
-            cam.location = cam.moveRight();
+        if (Keyboard.isKeyDown(Keyboard.KEY_D))//strafe right
+        {
+            cam.strafeRight(movementSpeed*getDelta());
         }
     }
-    static void mouse(){
+    static void mouse()
+    {
             //i get input from the mouse wheel and use it to switch states
             int wheelState = Mouse.getDWheel();
-            if (wheelState < 0) {
+            if (wheelState < 0) 
+            {
                 inv.itemSlotSelected -= 1;
-                if(inv.itemSlotSelected < inv.maxItemSlots - inv.maxItemSlots +1){
+                if(inv.itemSlotSelected < inv.maxItemSlots - inv.maxItemSlots +1)
+                {
                     inv.itemSlotSelected = 1;
                 }
                 //System.out.println("the item selected:"+inv.itemSlotSelected);
             }
-            if (wheelState > 0){
+            if (wheelState > 0)
+            {
                 inv.itemSlotSelected += 1;
                 if(inv.itemSlotSelected > inv.maxItemSlots){
                     inv.itemSlotSelected = inv.maxItemSlots;
@@ -87,14 +167,29 @@ public class Main {
                 //System.out.println("the item selected:"+inv.itemSlotSelected);
             }
         //mouse coordinates
-        mouseDx = Mouse.getDX();
-        mouseDy = Mouse.getDY();
+            mouseDx = Mouse.getDX();
+            mouseDy = -Mouse.getDY();
+          //control camera yaw from x movement from the mouse
+            cam.yaw(mouseDx * mouseSensitivity);
+            //control camera pitch from y movement from the mouse
+            cam.pitch(mouseDy * mouseSensitivity);
+
+     
+
     }
-    static void draw(){
-        glBegin(GL_LINES);
-            glVertex2f(100,100);
-            glVertex2f(500,500);
-        glEnd();
+    /**
+     * Calculate the FPS and set it in the title bar
+     */
+   static  long fps;
+    public static void updateFPS() 
+    {
+        if (getTime() - lastFPS > 1000)
+        {
+            Display.setTitle("FPS: " + fps); 
+            fps = 0; //reset the FPS counter
+           lastFPS += 1000; //add one second
+        }
+        fps++;
     }
 
 
