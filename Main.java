@@ -21,6 +21,7 @@ import static org.lwjgl.util.glu.GLU.gluPerspective;
 import static  org.lwjgl.opengl.GL11.*;
 public class Main 
 {
+	//this is totally a contribution
 	static Cube test;
 	static long currentTime;
 	public enum State 
