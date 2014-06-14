@@ -4,17 +4,24 @@ package konnorscomputers;
  * Created by konnor on 6/9/14.
  */
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import  org.lwjgl.opengl.*;
 import org.lwjgl.util.vector.Vector3f;
+import org.newdawn.slick.opengl.Texture;
+import org.newdawn.slick.opengl.TextureLoader;
+
 import static org.lwjgl.util.glu.GLU.gluPerspective;
-
 import static  org.lwjgl.opengl.GL11.*;
-
 public class Main 
 {
+	static Cube test;
 	static long currentTime;
 	public enum State 
 	{
@@ -41,8 +48,6 @@ public class Main
     static Inventory inv;
     static float mouseSensitivity = 0.05f;
     static float movementSpeed = 10 * .001f;
-    //creates a launcher that runs start() when the start button on the launcher is pressed
-    public static Launcher launcher;
     static LwjglDisplay display;
     public static void start() {
         display = new LwjglDisplay(1280,720);
@@ -50,7 +55,7 @@ public class Main
     }
 
     public static void main(String[] args) {
-        launcher = new Launcher(2);
+        start();
     }
     static //is under Display not close requested
   	float dt  = 0.0f;
@@ -64,42 +69,8 @@ public class Main
         inv.itemIDSelected();
         GL11.glLoadIdentity();  
          cam.lookThrough();
-        GL11.glTranslatef(0f,0.0f,-15f);                    
-        GL11.glColor3f(0.5f,0.5f,1.0f);  
-        //i draw a quad
-             
-        GL11.glBegin(GL11.GL_QUADS);    
-          // GL11.glColor3f(1.0f,1.0f,0.0f);           
-           GL11.glVertex3f( 1.0f, 1.0f,-1.0f);        
-           GL11.glVertex3f(-1.0f, 1.0f,-1.0f);        
-           GL11.glVertex3f(-1.0f, 1.0f, 1.0f);
-           GL11.glVertex3f( 1.0f, 1.0f, 1.0f);  
-          // GL11.glColor3f(1.0f,0.5f,0.0f);            
-           GL11.glVertex3f( 1.0f,-1.0f, 1.0f);
-           GL11.glVertex3f(-1.0f,-1.0f, 1.0f);
-           GL11.glVertex3f(-1.0f,-1.0f,-1.0f);
-           GL11.glVertex3f( 1.0f,-1.0f,-1.0f);
-           //GL11.glColor3f(1.0f,0.0f,0.0f);
-           GL11.glVertex3f( 1.0f, 1.0f, 1.0f);
-           GL11.glVertex3f(-1.0f, 1.0f, 1.0f);
-           GL11.glVertex3f(-1.0f,-1.0f, 1.0f);
-           GL11.glVertex3f( 1.0f,-1.0f, 1.0f);
-         //  GL11.glColor3f(1.0f,1.0f,0.0f);
-           GL11.glVertex3f( 1.0f,-1.0f,-1.0f);
-           GL11.glVertex3f(-1.0f,-1.0f,-1.0f);
-           GL11.glVertex3f(-1.0f, 1.0f,-1.0f);
-           GL11.glVertex3f( 1.0f, 1.0f,-1.0f);
-      //     GL11.glColor3f(0.0f,0.0f,1.0f);
-           GL11.glVertex3f(-1.0f, 1.0f, 1.0f);
-           GL11.glVertex3f(-1.0f, 1.0f,-1.0f);
-           GL11.glVertex3f(-1.0f,-1.0f,-1.0f);
-           GL11.glVertex3f(-1.0f,-1.0f, 1.0f);
-        //   GL11.glColor3f(1.0f,0.0f,1.0f);
-           GL11.glVertex3f( 1.0f, 1.0f,-1.0f);
-           GL11.glVertex3f( 1.0f, 1.0f, 1.0f);
-           GL11.glVertex3f( 1.0f,-1.0f, 1.0f);
-           GL11.glVertex3f( 1.0f,-1.0f,-1.0f);
-       GL11.glEnd();
+        GL11.glTranslatef(0f,0.0f,-15f);    
+        test.draw();
         Display.update();
         Display.sync(20000);
 
@@ -107,8 +78,10 @@ public class Main
         keys();
     }
     //is before close not requested in the class LwjglDisplay
+	static Texture texture;
     static void initApp()
     {
+    	test  = new Cube(0,3,0);
         initGL();
     	System.out.println("OpenGL version: " + GL11.glGetString(GL11.GL_VERSION));
     	lastFrame = getTime();
@@ -185,13 +158,10 @@ public class Main
     {
         if (getTime() - lastFPS > 1000)
         {
-            Display.setTitle("FPS: " + fps); 
+            Display.setTitle("Welcome to my Game! Your fps is:" + fps); 
             fps = 0; //reset the FPS counter
            lastFPS += 1000; //add one second
         }
         fps++;
     }
-
-
-
 }
